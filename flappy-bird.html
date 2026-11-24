@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>الطائر القافز | خالد البيك</title>
+<meta name="description" content="الطائر القافز - لعبة مجانية تلعب مباشرة من المتصفح">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#4fc3f7;font-family:Tahoma,Arial,sans-serif;color:#fff;overflow:hidden;touch-action:none}
+#app{max-width:480px;height:100%;margin:0 auto;display:flex;flex-direction:column;align-items:center;padding:6px}
+h1{font-size:20px;margin:4px 0}
+#bar{display:flex;justify-content:space-between;width:100%;font-size:16px;padding:2px 8px;font-weight:bold}
+#stage{flex:1;width:100%;position:relative;min-height:0;display:flex;align-items:center;justify-content:center}
+canvas{max-width:100%;max-height:100%;background:rgba(0,0,0,.25);border-radius:12px;touch-action:none}
+#ov{position:absolute;inset:0;background:rgba(0,0,0,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;border-radius:12px;z-index:5}
+#ov h2{margin:0 0 8px;font-size:26px}#ov p{margin:4px 0 14px;font-size:16px;line-height:1.5}
+button.b{background:#ffcc00;color:#222;border:0;border-radius:24px;padding:12px 32px;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit}
+button.b:active{transform:scale(.95)}
+footer{font-size:11px;opacity:.7;padding:4px}
+</style></head><body><div id="app">
+<h1>🐦 الطائر القافز</h1>
+<div id="bar"><span id="sc">النقاط: 0</span><span id="lv"></span><span id="bs"></span></div><div id="stage"><canvas id="c" width="360" height="540"></canvas><div id="ov"></div></div>
+<footer>© 2026 خالد البيك. جميع الحقوق محفوظة.</footer></div>
+<script>
+var CFG={"id": "flappy-bird", "title": "الطائر القافز", "emoji": "🐦", "desc": "حلّق بين الأعمدة", "player": "🐦", "bg": "#4fc3f7", "pipe": "#2e7d32", "gap": 170, "help": "انقر أو المس الشاشة للقفز وتجاوز الأعمدة بدون الاصطدام."};
+var BEST=+(localStorage.getItem('best_'+CFG.id)||0);
+function saveBest(s){if(s>BEST){BEST=s;try{localStorage.setItem('best_'+CFG.id,s)}catch(e){}}}
+function overlay(t,p,btn,cb){var o=document.getElementById('ov');o.style.display='flex';o.innerHTML='<h2>'+t+'</h2><p>'+p+'</p><button class="b" id="go">'+btn+'</button>';document.getElementById('go').onclick=function(){o.style.display='none';cb()}}
+function rnd(a,b){return a+Math.random()*(b-a)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+
+var cv=document.getElementById('c'),x=cv.getContext('2d'),W=360,H=540;
+var y,vy,pipes,score,run=false,last=0,t=0;
+document.getElementById('bs').textContent='الأفضل: '+BEST;
+function flap(e){if(e&&e.preventDefault)e.preventDefault();if(run)vy=-7}
+cv.addEventListener('mousedown',flap);cv.addEventListener('touchstart',flap,{passive:false});document.addEventListener('keydown',function(e){if(e.key==' '||e.key=='ArrowUp')flap(e)});
+function start(){y=H/2;vy=0;pipes=[];score=0;t=0;run=true;last=performance.now();requestAnimationFrame(loop)}
+function loop(n){if(!run)return;var dt=Math.min(40,n-last)/16;last=n;t+=dt;vy+=.4*dt;y+=vy*dt;
+ if(t>70){t=0;pipes.push({x:W+20,g:rnd(120,H-220),s:0})}
+ for(var i=pipes.length-1;i>=0;i--){var p=pipes[i];p.x-=2.6*dt;if(p.x<-60){pipes.splice(i,1);continue}
+  if(!p.s&&p.x<80){p.s=1;score++}
+  if(80+16>p.x&&80-16<p.x+50&&(y-16<p.g||y+16>p.g+CFG.gap))return over()}
+ if(y>H-16||y<-40)return over();
+ x.clearRect(0,0,W,H);x.fillStyle=CFG.pipe;for(var i=0;i<pipes.length;i++){var p=pipes[i];x.fillRect(p.x,0,50,p.g);x.fillRect(p.x,p.g+CFG.gap,50,H);x.fillStyle='rgba(255,255,255,.3)';x.fillRect(p.x+6,0,6,p.g);x.fillRect(p.x+6,p.g+CFG.gap,6,H);x.fillStyle=CFG.pipe}
+ x.textAlign='center';x.textBaseline='middle';x.font='36px serif';x.save();x.translate(80,y);x.rotate(Math.max(-.5,Math.min(.8,vy/10)));x.fillText(CFG.player,0,0);x.restore();
+ document.getElementById('sc').textContent='النقاط: '+score;requestAnimationFrame(loop)}
+function over(){run=false;saveBest(score);document.getElementById('bs').textContent='الأفضل: '+BEST;overlay('اصطدمت! 💥','نقاطك: '+score+'<br>الأفضل: '+BEST,'العب مرة أخرى',start)}
+overlay(CFG.title,CFG.help,'ابدأ',start);
+
+</script></body></html>

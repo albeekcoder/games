@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ذاكرة الزهور | خالد البيك</title>
+<meta name="description" content="ذاكرة الزهور - لعبة مجانية تلعب مباشرة من المتصفح">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#7b1fa2;font-family:Tahoma,Arial,sans-serif;color:#fff;overflow:hidden;touch-action:none}
+#app{max-width:480px;height:100%;margin:0 auto;display:flex;flex-direction:column;align-items:center;padding:6px}
+h1{font-size:20px;margin:4px 0}
+#bar{display:flex;justify-content:space-between;width:100%;font-size:16px;padding:2px 8px;font-weight:bold}
+#stage{flex:1;width:100%;position:relative;min-height:0;display:flex;align-items:center;justify-content:center}
+canvas{max-width:100%;max-height:100%;background:rgba(0,0,0,.25);border-radius:12px;touch-action:none}
+#ov{position:absolute;inset:0;background:rgba(0,0,0,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;border-radius:12px;z-index:5}
+#ov h2{margin:0 0 8px;font-size:26px}#ov p{margin:4px 0 14px;font-size:16px;line-height:1.5}
+button.b{background:#ffcc00;color:#222;border:0;border-radius:24px;padding:12px 32px;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit}
+button.b:active{transform:scale(.95)}
+footer{font-size:11px;opacity:.7;padding:4px}
+</style></head><body><div id="app">
+<h1>🌸 ذاكرة الزهور</h1>
+<div id="bar"><span id="sc">النقاط: 0</span><span id="lv"></span><span id="bs"></span></div><div id="stage"><div id="ov"></div><div id="field" style="position:absolute;inset:0"></div></div>
+<footer>© 2026 خالد البيك. جميع الحقوق محفوظة.</footer></div>
+<script>
+var CFG={"id": "memory-flowers", "title": "ذاكرة الزهور", "emoji": "🌸", "desc": "طابق أزواج الزهور", "items": ["🌸", "🌹", "🌻", "🌷", "🌺", "💐", "🌼", "🪻"], "bg": "#7b1fa2", "pairs": 8, "help": "اقلب البطاقات وابحث عن الأزواج المتطابقة بأقل عدد من الحركات."};
+var BEST=+(localStorage.getItem('best_'+CFG.id)||0);
+function saveBest(s){if(s>BEST){BEST=s;try{localStorage.setItem('best_'+CFG.id,s)}catch(e){}}}
+function overlay(t,p,btn,cb){var o=document.getElementById('ov');o.style.display='flex';o.innerHTML='<h2>'+t+'</h2><p>'+p+'</p><button class="b" id="go">'+btn+'</button>';document.getElementById('go').onclick=function(){o.style.display='none';cb()}}
+function rnd(a,b){return a+Math.random()*(b-a)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+
+var f=document.getElementById('field'),first=null,lock=false,moves=0,found=0,n=CFG.pairs;
+document.getElementById('bs').textContent=BEST?'الأفضل: '+BEST+' حركة':'';
+function start(){f.innerHTML='';moves=0;found=0;first=null;lock=false;var cards=shuffle(CFG.items.slice(0,n).concat(CFG.items.slice(0,n)));
+ var cols=n>8?4:4;f.style.cssText='position:absolute;inset:0;display:grid;grid-template-columns:repeat('+cols+',1fr);gap:8px;padding:8px;align-content:center';
+ cards.forEach(function(e){var d=document.createElement('div');d.style.cssText='background:#fff3;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12vmin;max-font-size:56px;aspect-ratio:1;cursor:pointer;transition:transform .25s;border:2px solid #fff5';
+  d.dataset.e=e;d.textContent='❓';d.style.fontSize='min(11vw,52px)';
+  d.onclick=function(){if(lock||d.open||d===first)return;d.textContent=e;d.open=1;d.style.background='#fff8';if(!first){first=d;return}
+   moves++;document.getElementById('sc').textContent='حركات: '+moves;
+   if(first.dataset.e===e){found++;first.style.background=d.style.background='#4caf50aa';first=null;if(found===n){var b=BEST?Math.min(BEST,moves):moves;try{localStorage.setItem('best_'+CFG.id,b)}catch(x){};BEST=b;setTimeout(function(){overlay('أحسنت! 🎉','أنهيت اللعبة في '+moves+' حركة','العب مرة أخرى',start)},500)}}
+   else{lock=true;var a=first;first=null;setTimeout(function(){a.textContent='❓';d.textContent='❓';a.open=d.open=0;a.style.background=d.style.background='#fff3';lock=false},700)}};
+  f.appendChild(d)});document.getElementById('sc').textContent='حركات: 0'}
+overlay(CFG.title,CFG.help,'ابدأ',start);
+
+</script></body></html>

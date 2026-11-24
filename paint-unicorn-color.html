@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>تلوين اليونيكورن | خالد البيك</title>
+<meta name="description" content="تلوين اليونيكورن - لعبة مجانية تلعب مباشرة من المتصفح">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#ad1457;font-family:Tahoma,Arial,sans-serif;color:#fff;overflow:hidden;touch-action:none}
+#app{max-width:480px;height:100%;margin:0 auto;display:flex;flex-direction:column;align-items:center;padding:6px}
+h1{font-size:20px;margin:4px 0}
+#bar{display:flex;justify-content:space-between;width:100%;font-size:16px;padding:2px 8px;font-weight:bold}
+#stage{flex:1;width:100%;position:relative;min-height:0;display:flex;align-items:center;justify-content:center}
+canvas{max-width:100%;max-height:100%;background:rgba(0,0,0,.25);border-radius:12px;touch-action:none}
+#ov{position:absolute;inset:0;background:rgba(0,0,0,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;border-radius:12px;z-index:5}
+#ov h2{margin:0 0 8px;font-size:26px}#ov p{margin:4px 0 14px;font-size:16px;line-height:1.5}
+button.b{background:#ffcc00;color:#222;border:0;border-radius:24px;padding:12px 32px;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit}
+button.b:active{transform:scale(.95)}
+footer{font-size:11px;opacity:.7;padding:4px}
+</style></head><body><div id="app">
+<h1>🦄 تلوين اليونيكورن</h1>
+<div id="bar"><span id="sc">النقاط: 0</span><span id="lv"></span><span id="bs"></span></div><div id="stage"><canvas id="c" width="360" height="540"></canvas><div id="ov"></div></div>
+<footer>© 2026 خالد البيك. جميع الحقوق محفوظة.</footer></div>
+<script>
+var CFG={"id": "paint-unicorn-color", "title": "تلوين اليونيكورن", "emoji": "🦄", "desc": "لوّني شكل اليونيكورن", "colors": ["#e91e63", "#f44336", "#ff9800", "#ffeb3b", "#4caf50", "#2196f3", "#9c27b0", "#ff80ab", "#000000"], "base": "🦄", "bg": "#ad1457", "help": ""};
+var BEST=+(localStorage.getItem('best_'+CFG.id)||0);
+function saveBest(s){if(s>BEST){BEST=s;try{localStorage.setItem('best_'+CFG.id,s)}catch(e){}}}
+function overlay(t,p,btn,cb){var o=document.getElementById('ov');o.style.display='flex';o.innerHTML='<h2>'+t+'</h2><p>'+p+'</p><button class="b" id="go">'+btn+'</button>';document.getElementById('go').onclick=function(){o.style.display='none';cb()}}
+function rnd(a,b){return a+Math.random()*(b-a)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+
+var cv=document.getElementById('c'),x=cv.getContext('2d'),W=360,H=540,col='#e91e63',size=8,down=false,lx,ly;
+document.getElementById('ov').style.display='none';x.fillStyle='#fff';x.fillRect(0,0,W,H);x.lineCap='round';x.lineJoin='round';
+var pal=document.createElement('div');pal.style.cssText='display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:4px';
+CFG.colors.forEach(function(c){var b=document.createElement('button');b.style.cssText='width:30px;height:30px;border-radius:50%;border:3px solid #fff;background:'+c;b.onclick=function(){col=c};pal.appendChild(b)});
+var tb=document.createElement('div');tb.style.cssText='display:flex;gap:6px;padding:4px';
+[['رفيع',function(){size=4}],['وسط',function(){size=10}],['سميك',function(){size=22}],['🧽 ممحاة',function(){col='#ffffff'}],['🗑️ مسح',function(){x.fillStyle='#fff';x.fillRect(0,0,W,H);CFG.base&&tmpl()}],['📷 حفظ',function(){var a=document.createElement('a');a.download=CFG.id+'.png';a.href=cv.toDataURL();a.click()}]].forEach(function(p){var b=document.createElement('button');b.className='b';b.style.cssText+='font-size:13px;padding:7px 10px';b.textContent=p[0];b.onclick=p[1];tb.appendChild(b)});
+var a=document.getElementById('app');a.insertBefore(pal,a.children[2]);a.insertBefore(tb,a.children[4]);
+function tmpl(){x.textAlign='center';x.textBaseline='middle';x.globalAlpha=.25;x.font='300px serif';x.fillStyle='#000';x.fillText(CFG.base,W/2,H/2);x.globalAlpha=1}
+if(CFG.base)tmpl();
+function pos(e){var r=cv.getBoundingClientRect();var p=e.touches?e.touches[0]:e;return[(p.clientX-r.left)/r.width*W,(p.clientY-r.top)/r.height*H]}
+function dn(e){e.preventDefault();down=true;var p=pos(e);lx=p[0];ly=p[1];x.strokeStyle=col;x.lineWidth=size;x.beginPath();x.moveTo(lx,ly);x.lineTo(lx+.1,ly);x.stroke()}
+function mv(e){if(!down)return;e.preventDefault();var p=pos(e);x.strokeStyle=col;x.lineWidth=size;x.beginPath();x.moveTo(lx,ly);x.lineTo(p[0],p[1]);x.stroke();lx=p[0];ly=p[1]}
+cv.addEventListener('mousedown',dn);cv.addEventListener('mousemove',mv);window.addEventListener('mouseup',function(){down=false});
+cv.addEventListener('touchstart',dn,{passive:false});cv.addEventListener('touchmove',mv,{passive:false});cv.addEventListener('touchend',function(){down=false});
+document.getElementById('sc').textContent='ارسم بإصبعك 🎨';
+
+</script></body></html>
